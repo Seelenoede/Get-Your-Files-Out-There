@@ -123,7 +123,7 @@ public class MainForm {
 						extractFiles();
 					}
 				};
-				if (!alreadyRunning) {
+				if ((!alreadyRunning) & (dirs!=null)) {
 					noBlock.start();
 					alreadyRunning = true;
 				}
@@ -142,6 +142,7 @@ public class MainForm {
 	}
 	
 	private void extractFiles()	{
+		
 		for(File dir:dirs) {
 			try {
 				String parentDir = dir.getCanonicalFile().getParent();
@@ -158,7 +159,8 @@ public class MainForm {
 				e.printStackTrace();
 			}
 		}
-		lblDone.setText("Done"); 
+		lblDone.setText("Done");
+		alreadyRunning = false;
 	}
 
 	private void resetElements() {
