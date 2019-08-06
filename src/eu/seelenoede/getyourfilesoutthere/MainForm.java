@@ -6,6 +6,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JTextField;
@@ -22,6 +23,8 @@ import java.awt.event.ActionEvent;
 import java.awt.Color;
 
 import javax.swing.JFileChooser;
+import javax.swing.BoxLayout;
+import java.awt.FlowLayout;
 
 public class MainForm {
 
@@ -33,6 +36,12 @@ public class MainForm {
 	private JButton btnBrowse;
 	private File[] dirs;
 	private JLabel lblDone;
+	static ArrayList<String> extensions;
+	private SettingsFilter filter;
+	private JPanel panel;
+	private JPanel panel_settings;
+	private JLabel lblSettings;
+	private JTextField textField_extensions;
 
 	/**
 	 * Launch the application.
@@ -54,6 +63,8 @@ public class MainForm {
 	 * Create the application.
 	 */
 	public MainForm() {
+		filter = new SettingsFilter();
+		extensions = new ArrayList<String>();
 		initialize();
 	}
 
@@ -72,9 +83,13 @@ public class MainForm {
 		frmGetYourFiles.setLocationRelativeTo(null);
 		frmGetYourFiles.getContentPane().setLayout(new BorderLayout(0, 0));
 
+		panel = new JPanel();
+		frmGetYourFiles.getContentPane().add(panel, BorderLayout.NORTH);
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
 		JPanel panel_path = new JPanel();
+		panel.add(panel_path);
 		panel_path.setBackground(Color.WHITE);
-		frmGetYourFiles.getContentPane().add(panel_path, BorderLayout.NORTH);
 
 		lblPath = new JLabel("Path: ");
 		panel_path.add(lblPath);
@@ -109,16 +124,30 @@ public class MainForm {
 		});
 		panel_path.add(btnBrowse);
 
+		panel_settings = new JPanel();
+		panel_settings.setBackground(Color.WHITE);
+		panel.add(panel_settings);
+		panel_settings.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+
+		lblSettings = new JLabel("Extensions: ");
+		panel_settings.add(lblSettings);
+
+		textField_extensions = new JTextField();
+		panel_settings.add(textField_extensions);
+		textField_extensions.setColumns(35);
+
 		JButton btnStart = new JButton("Start");
+		frmGetYourFiles.getContentPane().add(btnStart, BorderLayout.SOUTH);
 		btnStart.setSelected(true);
 		btnStart.setBackground(Color.LIGHT_GRAY);
 
 		frmGetYourFiles.getRootPane().setDefaultButton(btnStart);
-		
+
 		btnStart.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				Thread noBlock = new Thread() {
 					public void run() {
+						setExtensionSettings();
 						resetElements();
 						extractFiles();
 					}
@@ -131,27 +160,29 @@ public class MainForm {
 			}
 		});
 
-		frmGetYourFiles.getContentPane().add(btnStart, BorderLayout.SOUTH);
-
 		panel_progress = new JPanel();
 		panel_progress.setBackground(Color.WHITE);
 		frmGetYourFiles.getContentPane().add(panel_progress, BorderLayout.CENTER);
-		
+
 		lblDone = new JLabel("");
 		panel_progress.add(lblDone);
 	}
-	
+
 	private void extractFiles()	{
-		
+
 		for(File dir:dirs) {
 			try {
 				String parentDir = dir.getCanonicalFile().getParent();
-			
+
 				File[] files;
-				files = dir.listFiles();
+				if(MainForm.extensions.size() == 1 && MainForm.extensions.get(0).equals(""))
+					files = dir.listFiles();
+				else				
+					files = dir.listFiles(filter);
+				
 				for(File file:files) {
 					Path target = FileSystems.getDefault().getPath(parentDir + "\\" + file.getName());
-					
+
 					Files.move(file.toPath(), target, StandardCopyOption.REPLACE_EXISTING);
 				}
 			} 
@@ -171,5 +202,14 @@ public class MainForm {
 		//progressBar_Extraction.setValue(0);
 		//progressBar_Zip.setValue(0);
 	}
-	
+
+	private void setExtensionSettings() {
+		String[] extensions = textField_extensions.getText().split(",");
+		if (extensions.length == 0)
+			return;
+		for(String extension:extensions) {
+			MainForm.extensions.add(extension.trim());
+		}
+	}
+
 }
