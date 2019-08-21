@@ -12,7 +12,7 @@ public class Engine {
 	private SettingsFilter filter;
 	
 	public Engine() {
-		
+		filter = new SettingsFilter();
 	}
 	
 	/**
@@ -27,7 +27,7 @@ public class Engine {
 				String parentDir = dir.getCanonicalFile().getParent();
 
 				File[] files;
-				if(filter.extensions.size() == 1 && filter.extensions.get(0).equals(""))
+				if(filter.extensions.size() == 0)
 					files = dir.listFiles();
 				else				
 					files = dir.listFiles(filter);
@@ -45,9 +45,10 @@ public class Engine {
 	}
 
 	protected void setExtensionSettings(String extensionString) {
-		String[] extensions = extensionString.split(",");
-		if (extensions.length == 0)
+		if(extensionString.equals("")) {
 			return;
+		}
+		String[] extensions = extensionString.split(",");
 		for(String extension:extensions) {
 			filter.extensions.add(extension.trim());
 		}
